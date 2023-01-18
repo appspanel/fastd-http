@@ -10,7 +10,7 @@
 namespace FastD\Http;
 
 use Psr\Http\Message\ServerRequestInterface;
-use swoole_http_request;
+use Swoole\Http\Request as SwooleRequest;
 
 /**
  * Class SwooleServerRequest
@@ -20,10 +20,10 @@ use swoole_http_request;
 class SwooleServerRequest extends ServerRequest
 {
     /**
-     * @param swoole_http_request $request
-     * @return ServerRequestInterface
+     * @param \Swoole\Http\Request $request
+     * @return \Psr\Http\Message\ServerRequestInterface
      */
-    public static function createServerRequestFromSwoole(swoole_http_request $request)
+    public static function createServerRequestFromSwoole(SwooleRequest $request)
     {
         $get = isset($request->get) ? $request->get : [];
         $post = isset($request->post) ? $request->post : [];
