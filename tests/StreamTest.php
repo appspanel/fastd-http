@@ -1,5 +1,6 @@
 <?php
 use FastD\Http\Stream;
+use PHPUnit\Framework\TestCase;
 
 /**
  *
@@ -9,14 +10,14 @@ use FastD\Http\Stream;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class StreamTest extends PHPUnit_Framework_TestCase
+class StreamTest extends TestCase
 {
     /**
      * @var Stream
      */
-    protected $stream;
+    protected Stream $stream;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->stream = new Stream('php://memory', 'wb+');
     }
@@ -74,11 +75,10 @@ class StreamTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->stream->eof());
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testStreamClose()
     {
+        $this->expectException(RuntimeException::class);
+
         $message = 'foo bar';
         $this->stream->write($message);
         $this->assertEquals(7, $this->stream->getSize());

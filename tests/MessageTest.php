@@ -1,5 +1,6 @@
 <?php
 use FastD\Http\Message;
+use PHPUnit\Framework\TestCase;
 
 /**
  *
@@ -9,16 +10,16 @@ use FastD\Http\Message;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class MessageTest extends PHPUnit_Framework_TestCase
+class MessageTest extends TestCase
 {
     /**
      * @var Message
      */
-    protected $message;
+    protected Message $message;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->message = $message = new Message();;
+        $this->message = new Message();
     }
 
     public function testDefaultHeader()

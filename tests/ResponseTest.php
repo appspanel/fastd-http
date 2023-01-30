@@ -12,21 +12,18 @@
  * WebSite: http://www.janhuang.me
  */
 
-namespace Tests;
-
-use DateTime;
 use FastD\Http\Cookie;
 use FastD\Http\Response;
-use Psr\Http\Message\ResponseInterface;
+use PHPUnit\Framework\TestCase;
 
-class ResponseTest extends \PHPUnit_Framework_TestCase
+class ResponseTest extends TestCase
 {
     /**
      * @var Response
      */
-    protected $response;
+    protected Response $response;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->response = new Response();
     }
@@ -54,26 +51,48 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $this->response->withContentType('text/png');
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Content-Type: text/png', $output);
     }
 
     public function testResponseCacheControl()
     {
         $this->response->withCacheControl('public');
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Cache-Control: public', $output);
+
         $this->response->withCacheControl('no-cache');
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Cache-Control: no-cache', $output);
     }
 
     public function testResponseExpire()
     {
-        $this->response->withExpires(new DateTime('2018-12-31'));
+        // Mon, 31 Dec 2018 12:00:00 GMT
+        $expires = '2018-12-31 12:00:00.000000';
+
+        $this->response->withExpires(DateTime::createFromFormat('Y-m-d H:i:s.u', $expires, new DateTimeZone('PRC')));
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Expires: Mon, 31 Dec 2018 12:00:00 GMT', $output);
+        $this->assertStringContainsString('Cache-Control: max-age=', $output);
+
         $this->response->withCacheControl('public');
         $this->response->withMaxAge(0);
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Expires: Mon, 31 Dec 2018 12:00:00 GMT', $output);
+        $this->assertStringContainsString('Cache-Control: public,max-age=0', $output);
     }
 
-    public function testResponseMofify()
+    public function testResponseModify()
     {
         $this->response->withLastModified(new DateTime());
         $this->outputResponse($this->response);
@@ -95,5 +114,9 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->response->withCookie('age', 11);
         $this->outputResponse($this->response);
+        $output = $this->getActualOutput();
+
+        $this->assertStringContainsString('Set-Cookie: foo=bar', $output);
+        $this->assertStringContainsString('Set-Cookie: age=11', $output);
     }
 }

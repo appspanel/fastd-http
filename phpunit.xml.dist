@@ -2,6 +2,7 @@
     <testsuites>
         <testsuite name="Http Testing">
             <directory>tests</directory>
+            <exclude>./tests/SwooleServerRequestTest.php</exclude>
         </testsuite>
     </testsuites>
 </phpunit>

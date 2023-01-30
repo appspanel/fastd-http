@@ -1,5 +1,7 @@
 <?php
 use FastD\Http\PhpInputStream;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\StreamInterface;
 
 /**
  *
@@ -9,14 +11,14 @@ use FastD\Http\PhpInputStream;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class PhpInputStreamTest extends PHPUnit_Framework_TestCase
+class PhpInputStreamTest extends TestCase
 {
     /**
      * @var \Psr\Http\Message\StreamInterface
      */
-    protected $stream;
+    protected StreamInterface $stream;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->stream = new PhpInputStream('php://temp', 'wr');
 
@@ -31,8 +33,6 @@ class PhpInputStreamTest extends PHPUnit_Framework_TestCase
         $content = $this->stream->getContents();
 
         parse_str($content, $_POST);
-        $this->assertEquals([
-            'age' => 11
-        ], $_POST);
+        $this->assertEquals(['age' => 11], $_POST);
     }
 }

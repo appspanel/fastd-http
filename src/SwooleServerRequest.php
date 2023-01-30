@@ -9,7 +9,6 @@
 
 namespace FastD\Http;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request as SwooleRequest;
 
 /**
@@ -83,6 +82,6 @@ class SwooleServerRequest extends ServerRequest
             ->withQueryParams($get)
             ->withCookieParams($cookie)
             ->withUploadedFiles($files)
-            ;
+        ;
     }
 }

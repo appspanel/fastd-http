@@ -9,8 +9,9 @@
 
 
 use FastD\Http\JsonResponse;
+use PHPUnit\Framework\TestCase;
 
-class JsonResponseTest extends PHPUnit_Framework_TestCase
+class JsonResponseTest extends TestCase
 {
     public function testResponseJson()
     {
@@ -18,7 +19,7 @@ class JsonResponseTest extends PHPUnit_Framework_TestCase
             'foo' => 'bar',
         ]);
 
-        $this->assertEquals($response->getContentType(), 'application/json; charset=UTF-8');
+        $this->assertEquals('application/json; charset=UTF-8', $response->getContentType());
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertTrue($response->isOk());
         $this->assertTrue($response->isSuccessful());
@@ -31,8 +32,6 @@ class JsonResponseTest extends PHPUnit_Framework_TestCase
         ]);
 
         $body = $response->getBody();
-        $this->assertEquals(json_decode($body, true), [
-            'foo' => 'bar'
-        ]);
+        $this->assertEquals(['foo' => 'bar'], json_decode($body, true));
     }
 }

@@ -1,5 +1,6 @@
 <?php
 use FastD\Http\Uri;
+use PHPUnit\Framework\TestCase;
 
 /**
  *
@@ -9,13 +10,12 @@ use FastD\Http\Uri;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class UriTest extends PHPUnit_Framework_TestCase
+class UriTest extends TestCase
 {
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testInvalidUri()
     {
+        $this->expectException(InvalidArgumentException::class);
+
         new Uri('///');
     }
 
@@ -111,7 +111,7 @@ class UriTest extends PHPUnit_Framework_TestCase
         $url = 'https://example/service/rest.htm';
         $uri = new Uri($url);
         $this->assertEquals(443, $uri->getPort());
-        $this->assertEquals((string)$uri, $url);
+        $this->assertEquals($url, (string)$uri);
     }
 
     public function testStandardPort()

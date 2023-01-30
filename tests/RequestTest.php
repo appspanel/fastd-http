@@ -1,6 +1,7 @@
 <?php
 use FastD\Http\Request;
 use FastD\Http\Uri;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author    jan huang <bboyjanhuang@gmail.com>
@@ -9,31 +10,29 @@ use FastD\Http\Uri;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class RequestTest extends PHPUnit_Framework_TestCase
+class RequestTest extends TestCase
 {
     public function testRequestUri()
     {
         $request = new Request('GET', 'http://example.com');
 
-        $this->assertEquals($request->getUri()->getHost(), 'example.com');
+        $this->assertEquals('example.com', $request->getUri()->getHost());
         $this->assertEquals(80, $request->getUri()->getPort());
         $this->assertEquals('/', $request->getUri()->getPath());
         $this->assertEquals($request->getRequestTarget(), $request->getUri()->getPath());
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testInvalidRequestUri()
     {
+        $this->expectException(InvalidArgumentException::class);
+
         new Request('GET', '///');
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     */
     public function testRequestMethod()
     {
+        $this->expectException(InvalidArgumentException::class);
+
         $request = new Request('GET', 'http://example.com');
         $this->assertEquals('GET', $request->getMethod());
         // Test invalid method
@@ -70,28 +69,24 @@ class RequestTest extends PHPUnit_Framework_TestCase
     {
         $request = $this->server();
 
-        $response = $request->send('', array(
-            'Accept-Encoding: gzip'
-        ));
-        $this->assertEquals(substr($response->getContents(), 2, 11), 'weatherinfo');
+        $response = $request->send('', array('Accept-Encoding: gzip'));
+        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
 
-        $response = $request->send('', array(
-            'Accept-Encoding: deflate'
-        ));
-        $this->assertEquals(substr($response->getContents(), 2, 11), 'weatherinfo');
+        $response = $request->send('', array('Accept-Encoding: deflate'));
+        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
 
-        $response = $request->send('', array(
-            'Accept-Encoding: gzip, deflate'
-        ));
-        $this->assertEquals(substr($response->getContents(), 2, 11), 'weatherinfo');
+        $response = $request->send('', array('Accept-Encoding: gzip, deflate'));
+        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
     }
 
     public function testPostRawRequest()
     {
         $raw = '<xml><appid><![CDATA[123456789123456789]]></appid><mch_id>1234567890</mch_id><nonce_str><![CDATA[589d897212f9c]]></nonce_str><body><![CDATA[123]]></body><out_trade_no><![CDATA[runnerlee_001]]></out_trade_no><fee_type><![CDATA[CNY]]></fee_type><total_fee>1</total_fee><spbill_create_ip><![CDATA[127.0.0.1]]></spbill_create_ip><trade_type><![CDATA[NATIVE]]></trade_type><notify_url><![CDATA[http://github.com]]></notify_url><detail><![CDATA[runnerlee_test_payment]]></detail><sign><![CDATA[ZXCVBNMASDFGHJKLQWERTYUIOP123456]]></sign></xml>';
-        $request = new Request('POST', 'https://api.mch.weixin.qq.com/pay/unifiedorder');
-        $response = (array)simplexml_load_string($request->send($raw)->getContents(), 'SimpleXMLElement', LIBXML_NOCDATA);
-        $this->assertEquals('appid不存在', $response['return_msg']);
+        $request = new Request('POST', 'https://httpbin.org/post');
+        $responseBody = $request->send($raw, ['Content-Type: application/xml'])->getContents();
+        $responseBody = json_decode($responseBody, true);
+
+        $this->assertEquals($raw, $responseBody['data']);
     }
 
     public function testWithOptions()

@@ -1,6 +1,7 @@
 <?php
 use FastD\Http\PhpInputStream;
 use FastD\Http\ServerRequest;
+use PHPUnit\Framework\TestCase;
 
 /**
  *
@@ -10,7 +11,7 @@ use FastD\Http\ServerRequest;
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-class ServerRequestTest extends PHPUnit_Framework_TestCase
+class ServerRequestTest extends TestCase
 {
     public function dataInputFromGlobals()
     {
@@ -209,7 +210,7 @@ class ServerRequestTest extends PHPUnit_Framework_TestCase
         $_POST = $this->dataBodyFromGlobals();
         $serverRequest = ServerRequest::createServerRequestFromGlobals();
 
-        $this->assertEquals($serverRequest->getUri()->getPath(), '/blog/article.php');
+        $this->assertEquals('/blog/article.php', $serverRequest->getUri()->getPath());
         $this->assertEquals('POST', $serverRequest->getMethod());
         $this->assertEquals($this->dataQueryFromGlobals() , $serverRequest->getQueryParams());
         $this->assertEquals($this->dataCookiesFromGlobals(), $serverRequest->getCookieParams());
