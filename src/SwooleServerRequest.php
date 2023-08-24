@@ -9,6 +9,7 @@
 
 namespace FastD\Http;
 
+use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request as SwooleRequest;
 
 /**
@@ -22,7 +23,7 @@ class SwooleServerRequest extends ServerRequest
      * @param \Swoole\Http\Request $request
      * @return \Psr\Http\Message\ServerRequestInterface
      */
-    public static function createServerRequestFromSwoole(SwooleRequest $request)
+    public static function createServerRequestFromSwoole(SwooleRequest $request): ServerRequestInterface
     {
         $get = isset($request->get) ? $request->get : [];
         $post = isset($request->post) ? $request->post : [];
@@ -30,6 +31,7 @@ class SwooleServerRequest extends ServerRequest
         $files = isset($request->files) ? $request->files : [];
 
         $host = '::1';
+
         foreach (['host', 'server_addr'] as $name) {
             if (!empty($request->header[$name])) {
                 $host = parse_url($request->header[$name], PHP_URL_HOST) ?: $request->header[$name];
@@ -61,7 +63,12 @@ class SwooleServerRequest extends ServerRequest
             'HTTP_CACHE_CONTROL' => isset($request->header['cache-control']) ? $request->header['cache-control'] : '',
         ];
 
+        if(isset($request->server['request_time_float'])) {
+            $server['REQUEST_TIME_FLOAT'] = $request->server['request_time_float'];
+        }
+
         $headers = [];
+
         foreach ($request->header as $name => $value) {
             $headers[str_replace('-', '_', $name)] = $value;
         }

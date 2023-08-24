@@ -10,6 +10,7 @@
 namespace FastD\Http;
 
 use CURLFile;
+use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use RuntimeException;
@@ -24,38 +25,38 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
     /**
      * @var string
      */
-    protected $tmpName;
+    protected string $tmpName;
 
     /**
      * @var int
      */
-    protected $error;
+    protected int $error;
 
     /**
      * @var int
      */
-    protected $size;
+    protected int $size;
 
     /**
      * @var false
      */
-    protected $moved = false;
+    protected bool $moved = false;
 
     /**
-     * @var StreamInterface
+     * @var \Psr\Http\Message\StreamInterface|null
      */
-    protected $stream;
+    protected ?StreamInterface $stream = null;
 
     /**
      * File constructor.
      *
-     * @param $name
-     * @param $type
-     * @param $tmpName
-     * @param $error
-     * @param $size
+     * @param string|null $name
+     * @param string|null $type
+     * @param string $tmpName
+     * @param int $error
+     * @param int $size
      */
-    public function __construct($name, $type, $tmpName, $error, $size)
+    public function __construct(?string $name, ?string $type, string $tmpName, int $error, int $size)
     {
         $this->tmpName = $tmpName;
         $this->error = $error;
@@ -65,22 +66,9 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
     }
 
     /**
-     * Retrieve a stream representing the uploaded file.
-     *
-     * This method MUST return a StreamInterface instance, representing the
-     * uploaded file. The purpose of this method is to allow utilizing native PHP
-     * stream functionality to manipulate the file upload, such as
-     * stream_copy_to_stream() (though the result will need to be decorated in a
-     * native PHP stream wrapper to work with such functions).
-     *
-     * If the moveTo() method has been called previously, this method MUST raise
-     * an exception.
-     *
-     * @return StreamInterface Stream representation of the uploaded file.
-     * @throws \RuntimeException in cases when no stream is available or can be
-     *     created.
+     * {@inheritDoc}
      */
-    public function getStream()
+    public function getStream(): StreamInterface
     {
         if ($this->moved) {
             throw new RuntimeException('Cannot retrieve stream after it has already been moved');
@@ -96,39 +84,9 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
     }
 
     /**
-     * Move the uploaded file to a new location.
-     *
-     * Use this method as an alternative to move_uploaded_file(). This method is
-     * guaranteed to work in both SAPI and non-SAPI environments.
-     * Implementations must determine which environment they are in, and use the
-     * appropriate method (move_uploaded_file(), rename(), or a stream
-     * operation) to perform the operation.
-     *
-     * $targetPath may be an absolute path, or a relative path. If it is a
-     * relative path, resolution should be the same as used by PHP's rename()
-     * function.
-     *
-     * The original file or stream MUST be removed on completion.
-     *
-     * If this method is called more than once, any subsequent calls MUST raise
-     * an exception.
-     *
-     * When used in an SAPI environment where $_FILES is populated, when writing
-     * files via moveTo(), is_uploaded_file() and move_uploaded_file() SHOULD be
-     * used to ensure permissions and upload status are verified correctly.
-     *
-     * If you wish to move to a stream, use getStream(), as SAPI operations
-     * cannot guarantee writing to stream destinations.
-     *
-     * @see http://php.net/is_uploaded_file
-     * @see http://php.net/move_uploaded_file
-     * @param string $targetPath Path to which to move the uploaded file.
-     * @return string
-     * @throws \InvalidArgumentException if the $targetPath specified is invalid.
-     * @throws \RuntimeException on any error during the move operation, or on
-     *                           the second or subsequent call to the method.
+     * {@inheritDoc}
      */
-    public function moveTo($targetPath)
+    public function moveTo(string $targetPath): string
     {
         $targetFile = $targetPath
             . DIRECTORY_SEPARATOR
@@ -139,7 +97,7 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
 
         if ('cli' === PHP_SAPI) {
             if (!rename($this->tmpName, $targetFile)) {
-                throw new \RuntimeException('Failed to move uploaded file.');
+                throw new RuntimeException('Failed to move uploaded file.');
             }
 
             $this->moved = true;
@@ -148,7 +106,7 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
         }
 
         if (!is_uploaded_file($this->tmpName)) {
-            throw new \InvalidArgumentException(sprintf('Upload file is invalid.'));
+            throw new InvalidArgumentException('Upload file is invalid.');
         }
 
         if (!is_dir($targetPath)) {
@@ -156,7 +114,7 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
         }
 
         if (!move_uploaded_file($this->tmpName, $targetFile)) {
-            throw new \RuntimeException('Failed to move uploaded file.');
+            throw new RuntimeException('Failed to move uploaded file.');
         }
 
         $this->moved = true;
@@ -165,81 +123,45 @@ class UploadedFile extends CURLFile implements UploadedFileInterface
     }
 
     /**
-     * Retrieve the file size.
-     *
-     * Implementations SHOULD return the value stored in the "size" key of
-     * the file in the $_FILES array if available, as PHP calculates this based
-     * on the actual size transmitted.
-     *
-     * @return int|null The file size in bytes or null if unknown.
+     * {@inheritDoc}
      */
-    public function getSize()
+    public function getSize(): ?int
     {
         return $this->size;
     }
 
     /**
-     * Retrieve the error associated with the uploaded file.
-     *
-     * The return value MUST be one of PHP's UPLOAD_ERR_XXX constants.
-     *
-     * If the file was uploaded successfully, this method MUST return
-     * UPLOAD_ERR_OK.
-     *
-     * Implementations SHOULD return the value stored in the "error" key of
-     * the file in the $_FILES array.
-     *
-     * @see http://php.net/manual/en/features.file-upload.errors.php
-     * @return int One of PHP's UPLOAD_ERR_XXX constants.
+     * {@inheritDoc}
      */
-    public function getError()
+    public function getError(): int
     {
         return $this->error;
     }
 
     /**
-     * Retrieve the filename sent by the client.
-     *
-     * Do not trust the value returned by this method. A client could send
-     * a malicious filename with the intention to corrupt or hack your
-     * application.
-     *
-     * Implementations SHOULD return the value stored in the "name" key of
-     * the file in the $_FILES array.
-     *
-     * @return string|null The filename sent by the client or null if none
-     *     was provided.
+     * {@inheritDoc}
      */
-    public function getClientFilename()
+    public function getClientFilename(): ?string
     {
         return $this->name;
     }
 
     /**
-     * Retrieve the media type sent by the client.
-     *
-     * Do not trust the value returned by this method. A client could send
-     * a malicious media type with the intention to corrupt or hack your
-     * application.
-     *
-     * Implementations SHOULD return the value stored in the "type" key of
-     * the file in the $_FILES array.
-     *
-     * @return string|null The media type sent by the client or null if none
-     *     was provided.
+     * {@inheritDoc}
      */
-    public function getClientMediaType()
+    public function getClientMediaType(): ?string
     {
         return $this->mime;
     }
 
     /**
      * @param array $file
-     * @return UploadedFile
+     * @return \FastD\Http\UploadedFile
      */
-    public static function normalizer(array $file)
+    public static function normalizer(array $file): UploadedFile
     {
-        return new UploadedFile($file['name'],
+        return new UploadedFile(
+            $file['name'],
             $file['type'],
             $file['tmp_name'],
             (int) $file['error'],

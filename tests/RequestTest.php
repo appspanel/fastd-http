@@ -41,7 +41,7 @@ class RequestTest extends TestCase
 
     public function server()
     {
-        $uri = new Uri('http://www.weather.com.cn/data/cityinfo/101010100.html');
+        $uri = new Uri('https://postman-echo.com/get');
 
         return new Request('GET', (string) $uri);
     }
@@ -69,14 +69,17 @@ class RequestTest extends TestCase
     {
         $request = $this->server();
 
-        $response = $request->send('', array('Accept-Encoding: gzip'));
-        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
+        $response = $request->send('', ['Accept-Encoding: gzip']);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertJson($response->getContents());
 
-        $response = $request->send('', array('Accept-Encoding: deflate'));
-        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
+        $response = $request->send('', ['Accept-Encoding: deflate']);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertJson($response->getContents());
 
-        $response = $request->send('', array('Accept-Encoding: gzip, deflate'));
-        $this->assertEquals('weatherinfo', substr($response->getContents(), 2, 11));
+        $response = $request->send('', ['Accept-Encoding: gzip, deflate']);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertJson($response->getContents());
     }
 
     public function testPostRawRequest()

@@ -9,6 +9,7 @@
 
 namespace FastD\Http;
 
+use InvalidArgumentException;
 
 /**
  * Class Cookie
@@ -20,61 +21,61 @@ class Cookie
     /**
      * @var string
      */
-    protected $name;
+    protected string $name;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $value;
+    protected ?string $value;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $domain;
+    protected ?string $domain;
 
     /**
      * Default time() + $expire.
      *
-     * @var int
+     * @var int|null
      */
-    protected $expire;
+    protected ?int $expire;
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected $path;
+    protected ?string $path;
 
     /**
-     * @var bool
+     * @var bool|null
      */
-    protected $secure;
+    protected ?bool $secure;
 
     /**
-     * @var bool
+     * @var bool|null
      */
-    protected $httpOnly;
+    protected ?bool $httpOnly;
 
     /**
-     * @param        $name
-     * @param null $value
-     * @param int $expire
-     * @param string $path
-     * @param null $domain
+     * @param string $name
+     * @param string|null $value
+     * @param int|null $expire
+     * @param string|null $path
+     * @param string|null $domain
      * @param bool $secure
      * @param bool $httpOnly
      */
     public function __construct(
-        $name,
-        $value = null,
-        $expire = null,
-        $path = null,
-        $domain = null,
-        $secure = null,
-        $httpOnly = null
+        string $name,
+        ?string $value = null,
+        ?int $expire = null,
+        ?string $path = null,
+        ?string $domain = null,
+        ?bool $secure = null,
+        ?bool $httpOnly = null
     ) {
         // from PHP source code
         if (preg_match("/[=,; \t\r\n\013\014]/", $name)) {
-            throw new \InvalidArgumentException(sprintf('The cookie name "%s" contains invalid characters.', $name));
+            throw new InvalidArgumentException(sprintf('The cookie name "%s" contains invalid characters.', $name));
         }
         $this->name = $name;
         $this->value = $value;
@@ -88,7 +89,7 @@ class Cookie
     /**
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -96,7 +97,7 @@ class Cookie
     /**
      * @return null|string
      */
-    public function getValue()
+    public function getValue(): ?string
     {
         return $this->value;
     }
@@ -104,23 +105,23 @@ class Cookie
     /**
      * @return null|string
      */
-    public function getDomain()
+    public function getDomain(): ?string
     {
         return $this->domain;
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getExpire()
+    public function getExpire(): ?int
     {
         return $this->expire;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPath()
+    public function getPath(): ?string
     {
         return $this->path;
     }
@@ -128,7 +129,7 @@ class Cookie
     /**
      * @return boolean
      */
-    public function isSecure()
+    public function isSecure(): bool
     {
         return $this->secure;
     }
@@ -136,7 +137,7 @@ class Cookie
     /**
      * @return boolean
      */
-    public function isHttpOnly()
+    public function isHttpOnly(): bool
     {
         return $this->httpOnly;
     }
@@ -144,26 +145,32 @@ class Cookie
     /**
      * @return string
      */
-    public function asString()
+    public function asString(): string
     {
         $str = urlencode($this->name).'=';
-        if ('' === (string)$this->value) {
+
+        if ('' === (string) $this->value) {
             $str .= 'deleted; expires='.gmdate("D, d-M-Y H:i:s T", time() - 31536001);
         } else {
             $str .= urlencode($this->value);
         }
+
         if ($this->expire > 0) {
             $str .= '; expires='.gmdate("D, d-M-Y H:i:s T", time () + $this->expire);
         }
+
         if ($this->path) {
             $str .= '; path='.$this->path;
         }
+
         if ($this->domain) {
             $str .= '; domain='.$this->domain;
         }
+
         if (true === $this->secure) {
             $str .= '; secure';
         }
+
         if (true === $this->httpOnly) {
             $str .= '; httponly';
         }
@@ -178,28 +185,29 @@ class Cookie
      */
     public function __toString()
     {
-        return (string)$this->value;
+        return (string) $this->value;
     }
 
     /**
-     * @param $name
-     * @param null $value
-     * @param null $expire
-     * @param null $path
-     * @param null $domain
-     * @param null $secure
-     * @param null $httpOnly
+     * @param string $name
+     * @param string|null $value
+     * @param int|null $expire
+     * @param string|null $path
+     * @param string|null $domain
+     * @param bool|null $secure
+     * @param bool|null $httpOnly
      * @return Cookie
      */
     public static function normalizer(
-        $name,
-        $value = null,
-        $expire = null,
-        $path = null,
-        $domain = null,
-        $secure = null,
-        $httpOnly = null
-    ) {
+        string $name,
+        ?string $value = null,
+        ?int $expire = null,
+        ?string $path = null,
+        ?string $domain = null,
+        ?bool $secure = null,
+        ?bool $httpOnly = null
+    ): Cookie
+    {
         return new static($name, $value, $expire, $path, $domain, $secure, $httpOnly);
     }
 }

@@ -34,9 +34,9 @@ class Uri implements UriInterface
     const CHAR_UNRESERVED = 'a-zA-Z0-9_\-\.~';
 
     /**
-     * @var int[] Array indexed by valid scheme names to their corresponding ports.
+     * @var array<string,int> Array indexed by valid scheme names to their corresponding ports.
      */
-    protected $allowedSchemes = [
+    protected array $allowedSchemes = [
         'http' => 80,
         'https' => 443,
     ];
@@ -44,55 +44,57 @@ class Uri implements UriInterface
     /**
      * @var string
      */
-    protected $scheme = '';
+    protected string $scheme = '';
 
     /**
      * @var string
      */
-    protected $userInfo = '';
+    protected string $userInfo = '';
 
     /**
      * @var string
      */
-    protected $host = '';
+    protected string $host = '';
 
     /**
-     * @var int
+     * @var int|null
      */
-    protected $port;
-
-    /**
-     * @var string
-     */
-    protected $path = '';
+    protected ?int $port = null;
 
     /**
      * @var string
      */
-    protected $relationPath = '/';
+    protected string $path = '';
+
+    /**
+     * @var string
+     */
+    protected string $relationPath = '/';
 
     /**
      * @var array
      */
-    protected $query = [];
+    protected array $query = [];
 
     /**
      * @var string
      */
-    protected $fragment = '';
+    protected string $fragment = '';
 
     /**
      * generated uri string cache
      *
      * @var string|null
      */
-    protected $uriString;
+    protected ?string $uriString = null;
 
     /**
+     * Uri constructor.
+     *
      * @param string $uri
      * @throws InvalidArgumentException on non-string $uri argument
      */
-    public function __construct($uri = '')
+    public function __construct(string $uri = '')
     {
         if (!empty($uri)) {
             $this->parseUri($uri);
@@ -131,17 +133,17 @@ class Uri implements UriInterface
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getScheme()
+    public function getScheme(): string
     {
         return $this->scheme;
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getAuthority()
+    public function getAuthority(): string
     {
         if (empty($this->host)) {
             return '';
@@ -160,33 +162,33 @@ class Uri implements UriInterface
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getUserInfo()
+    public function getUserInfo(): string
     {
         return $this->userInfo;
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getHost()
+    public function getHost(): string
     {
         return $this->host;
     }
 
     /**
-     * @return int
+     * {@inheritDoc}
      */
-    public function getPort()
+    public function getPort(): ?int
     {
         return $this->port;
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -194,32 +196,32 @@ class Uri implements UriInterface
     /**
      * @return string
      */
-    public function getRelationPath()
+    public function getRelationPath(): string
     {
         return $this->relationPath;
     }
 
     /**
+     * {@inheritDoc}
      * @return array
      */
-    public function getQuery()
+    public function getQuery(): array
     {
         return $this->query;
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
-    public function getFragment()
+    public function getFragment(): string
     {
         return $this->fragment;
     }
 
     /**
-     * @param string $scheme
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withScheme($scheme)
+    public function withScheme(string $scheme): static
     {
         $scheme = $this->filterScheme($scheme);
 
@@ -234,11 +236,9 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param string $user
-     * @param null $password
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withUserInfo($user, $password = null)
+    public function withUserInfo(string $user, ?string $password = null): static
     {
         $info = $user;
         if ($password) {
@@ -256,10 +256,9 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param string $host
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withHost($host)
+    public function withHost(string $host): static
     {
         if ($host === $this->host) {
             // Do nothing if no change was made.
@@ -272,19 +271,15 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param int|null $port
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withPort($port)
+    public function withPort(?int $port): static
     {
-        if (!(is_integer($port) || (is_string($port) && is_numeric($port)))) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid port "%s" specified; must be an integer or integer string',
-                (is_object($port) ? get_class($port) : gettype($port))
-            ));
-        }
+        if(null === $port) {
+            $this->port = null;
 
-        $port = (int)$port;
+            return $this;
+        }
 
         if ($port === $this->port) {
             // Do nothing if no change was made.
@@ -304,24 +299,17 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param string $path
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withPath($path)
+    public function withPath(string $path): static
     {
-        if (!is_string($path)) {
-            throw new InvalidArgumentException(
-                'Invalid path provided; must be a string'
-            );
-        }
-
-        if (strpos($path, '?') !== false) {
+        if (str_contains($path, '?')) {
             throw new InvalidArgumentException(
                 'Invalid path provided; must not contain a query string'
             );
         }
 
-        if (strpos($path, '#') !== false) {
+        if (str_contains($path, '#')) {
             throw new InvalidArgumentException(
                 'Invalid path provided; must not contain a URI fragment'
             );
@@ -340,18 +328,11 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param string $query
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withQuery($query)
+    public function withQuery(string $query): static
     {
-        if (!is_string($query)) {
-            throw new InvalidArgumentException(
-                'Query string must be a string'
-            );
-        }
-
-        if (strpos($query, '#') !== false) {
+        if (str_contains($query, '#')) {
             throw new InvalidArgumentException(
                 'Query string must not include a URI fragment'
             );
@@ -370,10 +351,9 @@ class Uri implements UriInterface
     }
 
     /**
-     * @param string $fragment
-     * @return Uri
+     * {@inheritDoc}
      */
-    public function withFragment($fragment)
+    public function withFragment(string $fragment): static
     {
         $fragment = $this->filterFragment($fragment);
 
@@ -390,9 +370,9 @@ class Uri implements UriInterface
     /**
      * Parse a URI into its parts, and set the properties
      *
-     * @param $uri
+     * @param string $uri
      */
-    protected function parseUri($uri)
+    protected function parseUri(string $uri): void
     {
         $parts = parse_url($uri);
 
@@ -403,8 +383,9 @@ class Uri implements UriInterface
         }
 
         $this->scheme = isset($parts['scheme']) ? $this->filterScheme($parts['scheme']) : '';
-        $this->userInfo = isset($parts['user']) ? $parts['user'] : '';
-        $this->host = isset($parts['host']) ? $parts['host'] : '';
+        $this->userInfo = $parts['user'] ?? '';
+        $this->host = $parts['host'] ?? '';
+
         if (isset($parts['port'])) {
             $this->port = $parts['port'];
         } elseif('https' === $this->scheme) {
@@ -412,6 +393,7 @@ class Uri implements UriInterface
         } else {
             $this->port = 80;
         }
+
         $this->path = isset($parts['path']) ? $this->filterPath($parts['path']) : '/';
         $this->query = isset($parts['query']) ? $this->filterQuery($parts['query']) : [];
         $this->fragment = isset($parts['fragment']) ? $this->filterFragment($parts['fragment']) : '';
@@ -422,6 +404,7 @@ class Uri implements UriInterface
 
         if (false !== $index = strpos($uri, '.php')) {
             $this->relationPath = substr($uri, ($index + 4));
+
             if (empty($this->relationPath)) {
                 $this->relationPath = '/';
             }
@@ -438,7 +421,7 @@ class Uri implements UriInterface
      * @param string $fragment
      * @return string
      */
-    public function createUriString($scheme, $authority, $path, array $query, $fragment)
+    public function createUriString(string $scheme, string $authority, string $path, array $query, string $fragment): string
     {
         $uri = '';
 
@@ -451,7 +434,7 @@ class Uri implements UriInterface
         }
 
         if ($path) {
-            if (empty($path) || '/' !== substr($path, 0, 1)) {
+            if (empty($path) || !str_starts_with($path, '/')) {
                 $path = '/' . $path;
             }
 
@@ -474,7 +457,7 @@ class Uri implements UriInterface
      *
      * @return bool
      */
-    protected function isNonStandardPort()
+    protected function isNonStandardPort(): bool
     {
         if (in_array((int) $this->port, $this->allowedSchemes)) {
             return false;
@@ -490,7 +473,7 @@ class Uri implements UriInterface
      *
      * @return string Filtered scheme.
      */
-    protected function filterScheme($scheme)
+    protected function filterScheme(string $scheme): string
     {
         $scheme = strtolower($scheme);
         $scheme = preg_replace('#:(//)?$#', '', $scheme);
@@ -516,7 +499,7 @@ class Uri implements UriInterface
      * @param string $path
      * @return string
      */
-    protected function filterPath($path)
+    protected function filterPath(string $path): string
     {
         return preg_replace_callback(
             '/(?:[^' . self::CHAR_UNRESERVED . ':@&=\+\$,\/;%]+|%(?![A-Fa-f0-9]{2}))/',
@@ -526,7 +509,7 @@ class Uri implements UriInterface
     }
 
     /**
-     * Filter a query string to ensure it is propertly encoded.
+     * Filter a query string to ensure it is properly encoded.
      *
      * Ensures that the values in the query string are properly urlencoded.
      *
@@ -535,12 +518,12 @@ class Uri implements UriInterface
      * @param string $query
      * @return array
      */
-    protected function filterQuery($query)
+    protected function filterQuery(string $query): array
     {
         $queryInfo = [];
 
         foreach (explode('&', $query) as $part) {
-            list($name, $value) = explode('=', (false === strpos($part, '=') ? "{$part}=" : $part), 2);
+            [$name, $value] = explode('=', (!str_contains($part, '=') ? "{$part}=" : $part), 2);
 
             $name = rawurldecode($name);
             $value = rawurldecode($value);
@@ -574,12 +557,14 @@ class Uri implements UriInterface
      * @param string $value
      * @return array A value with exactly two elements, key and value
      */
-    protected function splitQueryValue($value)
+    protected function splitQueryValue(string $value): array
     {
         $data = explode('=', $value, 2);
+
         if (1 === count($data)) {
             $data[] = null;
         }
+
         return $data;
     }
 
@@ -589,13 +574,13 @@ class Uri implements UriInterface
      * @param null|string $fragment
      * @return string
      */
-    protected function filterFragment($fragment)
+    protected function filterFragment(?string $fragment): string
     {
         if (null === $fragment) {
             $fragment = '';
         }
 
-        if (!empty($fragment) && strpos($fragment, '#') === 0) {
+        if (!empty($fragment) && str_starts_with($fragment, '#')) {
             $fragment = substr($fragment, 1);
         }
 
@@ -608,7 +593,7 @@ class Uri implements UriInterface
      * @param string $value
      * @return string
      */
-    protected function filterQueryOrFragment($value)
+    protected function filterQueryOrFragment(string $value): string
     {
         return preg_replace_callback(
             '/(?:[^' . self::CHAR_UNRESERVED . self::CHAR_SUB_DELIMITERS . '%:@\/\?]+|%(?![A-Fa-f0-9]{2}))/',
@@ -623,7 +608,7 @@ class Uri implements UriInterface
      * @param array $matches
      * @return string
      */
-    protected function urlEncodeChar(array $matches)
+    protected function urlEncodeChar(array $matches): string
     {
         return rawurlencode($matches[0]);
     }

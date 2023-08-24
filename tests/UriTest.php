@@ -22,18 +22,21 @@ class UriTest extends TestCase
     public function testPath()
     {
         $uri = new Uri('/');
+
         $this->assertEquals('/', $uri->getPath());
     }
 
     public function testRootPath()
     {
         $uri = new Uri('https://example.com');
+
         $this->assertEquals('/', $uri->getPath());
     }
 
     public function testUri()
     {
         $uri = new Uri('https://user:pass@local.example.com:3001/foo?bar=baz#quz');
+
         $this->assertEquals('https', $uri->getScheme());
         $this->assertEquals('user:pass', $uri->getUserInfo());
         $this->assertEquals('local.example.com', $uri->getHost());
@@ -48,6 +51,7 @@ class UriTest extends TestCase
     {
         $url = 'https://user:pass@local.example.com:3001/foo?bar=baz#quz';
         $uri = new Uri($url);
+
         $this->assertEquals($url, (string)$uri);
     }
 
@@ -55,6 +59,7 @@ class UriTest extends TestCase
     {
         $url = '/foo?bar=baz#quz';
         $uri = new Uri($url);
+
         $this->assertEquals($url, (string)$uri);
         $this->assertEquals('/foo', $uri->getPath());
     }
@@ -63,6 +68,7 @@ class UriTest extends TestCase
     {
         $url = 'http://localhost/foo/index.php/bar';
         $uri = new Uri($url);
+
         $this->assertEquals('/foo/index.php/bar', $uri->getPath());
     }
 
@@ -70,6 +76,7 @@ class UriTest extends TestCase
     {
         $url = 'http://localhost/foo/index.php/bar';
         $uri = new Uri($url);
+
         $this->assertEquals('/bar', $uri->getRelationPath());
     }
 
@@ -77,12 +84,14 @@ class UriTest extends TestCase
     {
         $url = 'https://user:pass@local.example.com:3001/foo?bar=baz#quz';
         $uri = new Uri($url);
+
         $this->assertEquals([
             'bar' => 'baz',
         ], $uri->getQuery());
 
         $url = 'https://user:pass@local.example.com:3001/foo?bar=baz&foo=bar#quz';
         $uri = new Uri($url);
+
         $this->assertEquals([
             'bar' => 'baz',
             'foo' => 'bar'
@@ -96,6 +105,7 @@ class UriTest extends TestCase
             ],
         ]);
         $uri = new Uri($url);
+
         $this->assertEquals([
             'foo' => '!%2',
             'vars' => [
@@ -110,6 +120,7 @@ class UriTest extends TestCase
     {
         $url = 'https://example/service/rest.htm';
         $uri = new Uri($url);
+
         $this->assertEquals(443, $uri->getPort());
         $this->assertEquals($url, (string)$uri);
     }
@@ -118,16 +129,18 @@ class UriTest extends TestCase
     {
         $url = 'https://example.com:443/service/rest.htm';
         $uri = new Uri($url);
+
         $this->assertEquals('https://example.com/service/rest.htm', (string) $uri);
         $this->assertEquals(443, $uri->getPort());
         $this->expectOutputString('https://example.com/service/rest.htm');
-        echo (string) $uri;
+        echo $uri;
     }
 
     public function testNonStandardPort()
     {
         $url = 'https://example:8088/service/rest.htm';
         $uri = new Uri($url);
+
         $this->assertEquals($url, (string) $uri);
         $this->assertEquals(8088, $uri->getPort());
     }

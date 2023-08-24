@@ -6,8 +6,8 @@
  * @link      https://www.github.com/janhuang
  * @link      http://www.fast-d.cn/
  */
-namespace FastD\Http;
 
+namespace FastD\Http;
 
 /**
  * Class PhpInputStream
@@ -19,12 +19,12 @@ class PhpInputStream extends Stream
     /**
      * @var string
      */
-    private $cache = '';
+    private string $cache = '';
 
     /**
      * @var bool
      */
-    private $reachedEof = false;
+    private bool $reachedEof = false;
 
     /**
      * PhpInputStream constructor.
@@ -32,7 +32,7 @@ class PhpInputStream extends Stream
      * @param string $stream
      * @param string $mode
      */
-    public function __construct($stream = 'php://input', $mode = 'r')
+    public function __construct(string $stream = 'php://input', string $mode = 'r')
     {
         parent::__construct($stream, $mode);
     }
@@ -55,7 +55,7 @@ class PhpInputStream extends Stream
     /**
      * @return bool false
      */
-    public function isWritable()
+    public function isWritable(): bool
     {
         return false;
     }
@@ -64,7 +64,7 @@ class PhpInputStream extends Stream
      * @param int $length
      * @return string
      */
-    public function read($length)
+    public function read(int $length): string
     {
         $content = parent::read($length);
         if ($content && ! $this->reachedEof) {
@@ -82,7 +82,7 @@ class PhpInputStream extends Stream
      * @param int $maxLength
      * @return string
      */
-    public function getContents($maxLength = -1)
+    public function getContents(int $maxLength = -1): string
     {
         if ($this->reachedEof) {
             return $this->cache;

@@ -9,11 +9,11 @@
 
 namespace FastD\Http;
 
-
 use RuntimeException;
 
 /**
  * Class HttpException
+ *
  * @package FastD\Http\Exception
  */
 class HttpException extends RuntimeException
@@ -21,14 +21,14 @@ class HttpException extends RuntimeException
     /**
      * @var int
      */
-    protected $statusCode;
+    protected readonly int $statusCode;
 
     /**
      * HttpException constructor.
      * @param string $message
      * @param int $statusCode
      */
-    public function __construct($message = "Server Interval Error", $statusCode = 500)
+    public function __construct(string $message = 'Server Interval Error', int $statusCode = 500)
     {
         parent::__construct($message);
 
@@ -38,7 +38,7 @@ class HttpException extends RuntimeException
     /**
      * @return int
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }

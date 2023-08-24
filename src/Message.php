@@ -24,21 +24,22 @@ class Message implements MessageInterface
     /**
      * @var array
      */
-    public $header = [];
-    
+    public array $header = [];
+
     /**
      * @var string
      */
-    protected $protocolVersion = '1.1';
+    protected string $protocolVersion = '1.1';
 
     /**
-     * @var StreamInterface
+     * @var \Psr\Http\Message\StreamInterface
      */
-    protected $stream;
+    protected StreamInterface $stream;
 
     /**
      * Message constructor.
-     * @param StreamInterface|null $stream
+     *
+     * @param \Psr\Http\Message\StreamInterface|null $stream
      */
     public function __construct(StreamInterface $stream = null)
     {
@@ -50,31 +51,17 @@ class Message implements MessageInterface
     }
 
     /**
-     * Retrieves the HTTP protocol version as a string.
-     *
-     * The string MUST contain only the HTTP version number (e.g., "1.1", "1.0").
-     *
-     * @return string HTTP protocol version.
+     * {@inheritDoc}
      */
-    public function getProtocolVersion()
+    public function getProtocolVersion(): string
     {
         return $this->protocolVersion;
     }
 
     /**
-     * Return an instance with the specified HTTP protocol version.
-     *
-     * The version string MUST contain only the HTTP version number (e.g.,
-     * "1.1", "1.0").
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new protocol version.
-     *
-     * @param string $version HTTP protocol version
-     * @return static
+     * {@inheritDoc}
      */
-    public function withProtocolVersion($version)
+    public function withProtocolVersion(string $version): MessageInterface
     {
         $this->protocolVersion = $version;
 
@@ -82,87 +69,35 @@ class Message implements MessageInterface
     }
 
     /**
-     * Retrieves all message header values.
-     *
-     * The keys represent the header name as it will be sent over the wire, and
-     * each value is an array of strings associated with the header.
-     *
-     *     // Represent the headers as a string
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         echo $name . ": " . implode(", ", $values);
-     *     }
-     *
-     *     // Emit headers iteratively:
-     *     foreach ($message->getHeaders() as $name => $values) {
-     *         foreach ($values as $value) {
-     *             header(sprintf('%s: %s', $name, $value), false);
-     *         }
-     *     }
-     *
-     * While header names are not case-sensitive, getHeaders() will preserve the
-     * exact case in which headers were originally specified.
-     *
-     * @return array Returns an associative array of the message's headers. Each
-     *     key MUST be a header name, and each value MUST be an array of strings
-     *     for that header.
+     * {@inheritDoc}
      */
-    public function getHeaders()
+    public function getHeaders(): array
     {
         return $this->header;
     }
 
     /**
-     * Checks if a header exists by the given case-insensitive name.
-     *
-     * @param string $name Case-insensitive header field name.
-     * @return bool Returns true if any header names match the given header
-     *                     name using a case-insensitive string comparison. Returns false if
-     *                     no matching header name is found in the message.
+     * {@inheritDoc}
      */
-    public function hasHeader($name)
+    public function hasHeader(string $name): bool
     {
         return isset($this->header[strtolower($name)]);
     }
 
     /**
-     * Retrieves a message header value by the given case-insensitive name.
-     *
-     * This method returns an array of all the header values of the given
-     * case-insensitive header name.
-     *
-     * If the header does not appear in the message, this method MUST return an
-     * empty array.
-     *
-     * @param string $name Case-insensitive header field name.
-     * @return array|bool An array of string values as provided for the given
-     *                     header. If the header does not appear in the message, this method MUST
-     *                     return an empty array.
+     * {@inheritDoc}
+     * @return array|bool PSR isn't respected.
      */
-    public function getHeader($name)
+    public function getHeader(string $name): array|false
     {
         return $this->hasHeader($name) ? $this->header[strtolower($name)] : false;
     }
 
     /**
-     * Retrieves a comma-separated string of the values for a single header.
-     *
-     * This method returns all of the header values of the given
-     * case-insensitive header name as a string concatenated together using
-     * a comma.
-     *
-     * NOTE: Not all header values may be appropriately represented using
-     * comma concatenation. For such headers, use getHeader() instead
-     * and supply your own delimiter when concatenating.
-     *
-     * If the header does not appear in the message, this method MUST return
-     * an empty string.
-     *
-     * @param string $name Case-insensitive header field name.
-     * @return string A string of values as provided for the given header
-     *                     concatenated together using a comma. If the header does not appear in
-     *                     the message, this method MUST return an empty string.
+     * {@inheritDoc}
+     * @return string|null PSR isn't respected.
      */
-    public function getHeaderLine($name)
+    public function getHeaderLine(string $name): ?string
     {
         $value = $this->getHeader($name);
 
@@ -174,21 +109,10 @@ class Message implements MessageInterface
     }
 
     /**
-     * Return an instance with the provided value replacing the specified header.
-     *
-     * While header names are case-insensitive, the casing of the header will
-     * be preserved by this function, and returned from getHeaders().
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new and/or updated header and value.
-     *
-     * @param string $name           Case-insensitive header field name.
-     * @param string|string[] $value Header value(s).
-     * @return static
-     * @throws \InvalidArgumentException for invalid header names or values.
+     * {@inheritDoc}
+     * @param string $value PSR isn't respected.
      */
-    public function withHeader($name, $value)
+    public function withHeader(string $name, $value): static
     {
         $this->header[strtolower($name)] = [$value];
 
@@ -199,7 +123,7 @@ class Message implements MessageInterface
      * @param array $headers
      * @return $this
      */
-    public function withHeaders(array $headers)
+    public function withHeaders(array $headers): static
     {
         foreach ($headers as $key => $header) {
             if (is_array($header)) {
@@ -215,22 +139,10 @@ class Message implements MessageInterface
     }
 
     /**
-     * Return an instance with the specified header appended with the given value.
-     *
-     * Existing values for the specified header will be maintained. The new
-     * value(s) will be appended to the existing list. If the header did not
-     * exist previously, it will be added.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new header and/or value.
-     *
-     * @param string $name           Case-insensitive header field name to add.
-     * @param string|string[] $value Header value(s).
-     * @return static
-     * @throws \InvalidArgumentException for invalid header names or values.
+     * {@inheritDoc}
+     * @param string $value PSR isn't respected.
      */
-    public function withAddedHeader($name, $value)
+    public function withAddedHeader(string $name, $value): static
     {
         $this->header[strtolower($name)][] = $value;
 
@@ -238,18 +150,9 @@ class Message implements MessageInterface
     }
 
     /**
-     * Return an instance without the specified header.
-     *
-     * Header resolution MUST be done without case-sensitivity.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that removes
-     * the named header.
-     *
-     * @param string $name Case-insensitive header field name to remove.
-     * @return static
+     * {@inheritDoc}
      */
-    public function withoutHeader($name)
+    public function withoutHeader(string $name): static
     {
         $name = strtolower($name);
 
@@ -263,31 +166,19 @@ class Message implements MessageInterface
     }
 
     /**
-     * Gets the body of the message.
-     *
-     * @return StreamInterface Returns the body as a stream.
+     * {@inheritDoc}
      */
-    public function getBody()
+    public function getBody(): StreamInterface
     {
         return $this->stream;
     }
 
     /**
-     * Return an instance with the specified message body.
-     *
-     * The body MUST be a StreamInterface object.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return a new instance that has the
-     * new body stream.
-     *
-     * @param StreamInterface $stream Body.
-     * @return static
-     * @throws \InvalidArgumentException When the body is not valid.
+     * {@inheritDoc}
      */
-    public function withBody(StreamInterface $stream)
+    public function withBody(StreamInterface $body): static
     {
-        $this->stream = $stream;
+        $this->stream = $body;
 
         return $this;
     }

@@ -14,7 +14,6 @@ use DateTimeZone;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 
-
 /**
  * Class Response
  *
@@ -105,7 +104,7 @@ class Response extends Message implements ResponseInterface
     protected string $charset = 'utf-8';
 
     /**
-     * @var Cookie[]
+     * @var \FastD\Http\Cookie[]
      */
     protected array $cookie = [];
 
@@ -125,7 +124,7 @@ class Response extends Message implements ResponseInterface
      *
      * @var array
      */
-    public static $statusTexts = array(
+    public static array $statusTexts = [
         100 => 'Continue',
         101 => 'Switching Protocols',
         102 => 'Processing',            // RFC2518
@@ -186,7 +185,7 @@ class Response extends Message implements ResponseInterface
         508 => 'Loop Detected',                                               // RFC5842
         510 => 'Not Extended',                                                // RFC2774
         511 => 'Network Authentication Required',                             // RFC6585
-    );
+    ];
 
     /**
      * Response constructor.
@@ -196,12 +195,13 @@ class Response extends Message implements ResponseInterface
      * @param array $headers
      */
     public function __construct(
-        $content = '',
-        $statusCode = 200,
+        string $content = '',
+        int $statusCode = 200,
         array $headers = []
     )
     {
         parent::__construct(new Stream('php://memory', 'wb+'));
+
         $this->withStatus($statusCode);
         $this->withContent($content);
         $this->withHeaders($headers);
@@ -262,16 +262,16 @@ class Response extends Message implements ResponseInterface
     }
 
     /**
-     * @param $key
-     * @param $value
-     * @param null $expire
-     * @param null $path
-     * @param null $domain
-     * @param null $secure
-     * @param null $httpOnly
+     * @param string $key
+     * @param string|null $value
+     * @param int|null $expire
+     * @param string|null $path
+     * @param string|null $domain
+     * @param bool|null $secure
+     * @param bool|null $httpOnly
      * @return $this
      */
-    public function withCookie($key, $value, $expire = null, $path = null, $domain = null, $secure = null, $httpOnly = null): Response
+    public function withCookie(string $key, ?string $value, ?int $expire = null, ?string $path = null, ?string $domain = null, bool $secure = null, bool $httpOnly = null): Response
     {
         $this->cookie[$key] = new Cookie($key, $value, $expire, $path, $domain, $secure, $httpOnly);
 
@@ -279,7 +279,7 @@ class Response extends Message implements ResponseInterface
     }
 
     /**
-     * @param Cookie[] $cookie
+     * @param \FastD\Http\Cookie[] $cookie
      * @return $this
      */
     public function withCookieParams(array $cookie): Response
@@ -290,7 +290,7 @@ class Response extends Message implements ResponseInterface
     }
 
     /**
-     * @return Cookie[]
+     * @return \FastD\Http\Cookie[]
      */
     public function getCookieParams(): array
     {
@@ -684,26 +684,9 @@ class Response extends Message implements ResponseInterface
     }
 
     /**
-     * Return an instance with the specified status code and, optionally, reason phrase.
-     *
-     * If no reason phrase is specified, implementations MAY choose to default
-     * to the RFC 7231 or IANA recommended reason phrase for the response's
-     * status code.
-     *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * updated status and reason phrase.
-     *
-     * @link http://tools.ietf.org/html/rfc7231#section-6
-     * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-     * @param int $code The 3-digit integer result code to set.
-     * @param string $reasonPhrase The reason phrase to use with the
-     *                             provided status code; if none is provided, implementations MAY
-     *                             use the defaults as suggested in the HTTP specification.
-     * @return static
-     * @throws InvalidArgumentException For invalid status code arguments.
+     * {@inheritDoc}
      */
-    public function withStatus($code, $reasonPhrase = null)
+    public function withStatus(int $code, string $reasonPhrase = ''): static
     {
         $this->statusCode = $code;
 
@@ -711,40 +694,25 @@ class Response extends Message implements ResponseInterface
             throw new InvalidArgumentException(sprintf('Invalid status code "%s"; must be an integer between 100 and 599, inclusive', $code));
         }
 
-        if (null === $reasonPhrase) {
-            $this->reasonPhrase = isset(static::$statusTexts[$this->statusCode]) ? static::$statusTexts[$this->statusCode] : 'Unknown phrase';
+        if ('' === $reasonPhrase) {
+            $this->reasonPhrase = static::$statusTexts[$this->statusCode] ?? 'Unknown phrase';
         }
 
         return $this;
     }
 
     /**
-     * Gets the response reason phrase associated with the status code.
-     *
-     * Because a reason phrase is not a required element in a response
-     * status line, the reason phrase value MAY be null. Implementations MAY
-     * choose to return the default RFC 7231 recommended reason phrase (or those
-     * listed in the IANA HTTP Status Code Registry) for the response's
-     * status code.
-     *
-     * @link http://tools.ietf.org/html/rfc7231#section-6
-     * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
-     * @return string Reason phrase; must return an empty string if none present.
+     * {@inheritDoc}
      */
-    public function getReasonPhrase()
+    public function getReasonPhrase(): string
     {
         return $this->reasonPhrase;
     }
 
     /**
-     * Gets the response status code.
-     *
-     * The status code is a 3-digit integer result code of the server's attempt
-     * to understand and satisfy the request.
-     *
-     * @return int Status code.
+     * {@inheritDoc}
      */
-    public function getStatusCode()
+    public function getStatusCode(): int
     {
         return $this->statusCode;
     }
